@@ -1,0 +1,5 @@
+Build apk android
+Na pasta android
+gradlew clean
+gradlew assembleRelease
+Na pasta app->build->outputs->apk->release->app-release.apk
