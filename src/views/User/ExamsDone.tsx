@@ -1,28 +1,42 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import Material from 'react-native-vector-icons/MaterialCommunityIcons';
 import {colors} from '../../styles/styles';
-import IScheduled from '../../interface/IScheduled';
 import Texto from '../../components/Texto';
-import useScheduledList from '../../state/hooks/useScheduledList';
 import Card from '../../components/Card';
 import MenssagemAviso from '../../components/MenssagemAviso';
+import Consultas from '../../service/sqlite/Consultas';
+import useUserActive from '../../state/hooks/useUserActive';
+import {Consulta} from '../../types/TypeConsulta';
+import orderDate from '../../../util/orderDate';
 
 export default () => {
-  const userScheduledList = useScheduledList();
+  const {id} = useUserActive();
 
-  const renderItem = ({item}: {item: IScheduled}) => {
+  const [userScheduledList, userScheduledListSet] = useState<Consulta[]>([]);
+
+  useEffect(() => {
+    Consultas.findById(id ?? 0)
+      .then(scheduledList => {
+        return userScheduledListSet(orderDate(scheduledList));
+      })
+      .catch(error => {
+        console.error('Erro ao buscar dados:', error);
+      });
+  }, [id]);
+
+  const renderItem = ({item}: {item: Consulta}) => {
     const selectStyle =
-      item.status === 'a'
+      item.statusConsulta === 'a'
         ? styles.status__scheduled
-        : item.status === 'c'
+        : item.statusConsulta === 'c'
         ? styles.status__done
         : styles.status__canceled;
 
     return (
       <View style={[styles.card, selectStyle]}>
         <View style={styles.status}>
-          {item.status === 'a' && (
+          {item.statusConsulta === 'a' && (
             <View style={styles.status}>
               <Material
                 name={'calendar-clock'}
@@ -32,13 +46,13 @@ export default () => {
               <Texto text="Agendada" styles={styles.textStatus} />
             </View>
           )}
-          {item.status === 'c' && (
+          {item.statusConsulta === 'c' && (
             <View style={styles.status}>
               <Material name={'check-circle'} size={30} color={colors.done} />
               <Texto text="Concluida" styles={styles.textStatus} />
             </View>
           )}
-          {item.status === 'x' && (
+          {item.statusConsulta === 'x' && (
             <View style={styles.status}>
               <Material
                 name={'close-circle'}
@@ -58,11 +72,11 @@ export default () => {
 
   return (
     <View style={styles.container}>
-      {userScheduledList.length > 0 ? (
+      {userScheduledList && userScheduledList.length > 0 ? (
         <FlatList
           data={userScheduledList}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.id.toString()}
           ListHeaderComponent={
             <Texto styles={styles.titulo} text="Histórico de Agendamentos" />
           }

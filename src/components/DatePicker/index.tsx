@@ -11,12 +11,17 @@ import DateTimePicker, {DateType} from 'react-native-ui-datepicker';
 import dayjs from 'dayjs';
 import 'dayjs/locale/pt-br'; // Importe a localização para o português do Brasi
 dayjs.locale('pt-br'); // Defina o idioma padrão para o português do Brasil
-
 import Material from 'react-native-vector-icons/MaterialCommunityIcons';
-import {useRecoilState} from 'recoil';
-import {userScheduledCurrentState} from '../../state/atom';
 import {colors} from '../../styles/styles';
 import useAddScheduled from '../../state/hooks/useAddScheduled';
+import Consultas from '../../service/sqlite/Consultas';
+import useUserActive from '../../state/hooks/useUserActive';
+import handleDate from '../../../util/handleDate';
+import useAddCurrent from '../../state/hooks/useAddCurrent';
+import useScheduledCurrent from '../../state/hooks/useScheduledCurrent';
+import useServiceCurrent from '../../state/hooks/useServiceCurrent';
+import {Consulta} from '../../types/TypeConsulta';
+import useRemoveScheduled from '../../state/hooks/useRemoveSchedulet';
 
 const stylesHeader: TextStyle = {
   color: colors.textAlt,
@@ -25,31 +30,55 @@ const stylesHeader: TextStyle = {
 interface IDatePicker {
   showPicker: boolean;
   onClose?: Dispatch<SetStateAction<boolean>>;
+  onPress?: (e?: any) => void;
+  onUpdate?: boolean;
 }
 
-export default ({showPicker, onClose}: IDatePicker) => {
+export default ({showPicker, onClose, onPress, onUpdate}: IDatePicker) => {
   const [date, setDate] = useState<DateType>(dayjs());
 
-  const [userScheduledCurrent, setUserScheduledCurrent] = useRecoilState(
-    userScheduledCurrentState,
-  );
+  const setUserScheduledCurrent = useAddCurrent();
+  const userScheduledCurrent = useScheduledCurrent();
+  const serviceCurrent = useServiceCurrent();
+  const cancelScheduled = useRemoveScheduled();
 
   const setUserScheduledList = useAddScheduled();
+  const {id} = useUserActive();
 
   const handlerScheduled = () => {
-    if (userScheduledCurrent != null) {
-      const formattingDate = dayjs(date).format('DD/MM/YYYY HH:mm');
+    if (serviceCurrent != null && id) {
       const novoAgendamento = {
-        ...userScheduledCurrent,
-        date: formattingDate,
-        status: 'a' as 'a' | 'c' | 'x',
+        idPaciente: id,
+        idDoctor: id,
+        idService: serviceCurrent.id,
+        dataHoraConsulta: handleDate(date),
+        statusConsulta: 'a',
       };
-      setUserScheduledCurrent(novoAgendamento);
       setUserScheduledList(novoAgendamento);
-      onClose?.(false);
+      handlerClear(novoAgendamento);
+      return novoAgendamento;
     }
   };
 
+  const handlerUpdate = () => {
+    if (userScheduledCurrent != null && id) {
+      const novoAgendamento = {
+        ...userScheduledCurrent,
+        id: userScheduledCurrent.id,
+        dataHoraConsulta: handleDate(date),
+      };
+      cancelScheduled(novoAgendamento);
+      handlerClear(novoAgendamento);
+      return novoAgendamento;
+    }
+  };
+
+  const handlerClear = (novoAgendamento: Consulta) => {
+    setUserScheduledCurrent(novoAgendamento);
+    onClose?.(false);
+  };
+
+  // Fecha o Datepicker e limpa o card selecionado
   const handleClose = () => {
     onClose?.(false);
     setUserScheduledCurrent(null);
@@ -62,7 +91,13 @@ export default ({showPicker, onClose}: IDatePicker) => {
         <TouchableOpacity
           style={styles.buttonDefault}
           onPress={() => {
-            handlerScheduled();
+            const obj = onUpdate ? handlerUpdate() : handlerScheduled();
+            if (onUpdate && id && obj && userScheduledCurrent?.id) {
+              Consultas.update(userScheduledCurrent.id, obj);
+              onPress && onPress();
+            } else if (obj) {
+              Consultas.insert(obj);
+            }
           }}>
           <Material size={20} name={'check'} color={colors.lighter} />
           <Text style={styles.buttonText}>Agendar</Text>

@@ -11,7 +11,7 @@ import Material from 'react-native-vector-icons/MaterialCommunityIcons';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../types/TypeRoutesUser';
 import {colors} from '../../styles/styles';
-import {opcoes} from '../../db/userCards';
+import {opcoes} from '../../db/userDoctors';
 import Texto from '../../components/Texto';
 import openDatabaseConnection from '../../db/conection';
 import Pacientes from '../../service/sqlite/Pacientes';
@@ -27,57 +27,6 @@ type MainUserScreenNavigationProp = NativeStackNavigationProp<
 type Props = {
   navigation: MainUserScreenNavigationProp;
 };
-
-const newPaciente = {
-  nome: 'Felipe teste',
-  telefone: '11 8888-8888',
-  email: 'felipe.teste@hotmail.com',
-  senha: '2415',
-  idsConsulta: '[0, 10, 11]',
-};
-
-const updatePaciente = {
-  nome: 'Ana teste',
-  telefone: '11 6666',
-  email: 'oi',
-  senha: '2415',
-  idsConsulta: '[20, 12, 5]',
-};
-
-// Array de operações a serem executadas em sequência
-const operations = [
-  // Pacientes.createTable(),
-  // Inserir outras operações assíncronas aqui, se necessário
-  // Conecta no Banco
-  // Pacientes.insert(newPaciente),
-  // Pacientes.update(1, updatePaciente);
-];
-
-// Executar todas as operações em paralelo e aguardar a conclusão de todas
-// Promise.all(operations)
-//   .then(() => {
-//     // Todas as operações foram concluídas com sucesso
-//     console.log('Todas as operações foram concluídas com sucesso.');
-
-//     Pacientes.all().then(rows => {
-//       // Imprima os dados no console
-//       console.log('Registros selecionados:');
-//       rows.forEach(obj => {
-//         console.log(obj);
-//       });
-//     });
-
-//     // Após a conclusão de todas as operações, agora você pode executar Pacientes.drop()
-//     // return Pacientes.drop();
-//   })
-//   .then(() => {
-//     // Pacientes.drop() foi concluído com sucesso
-//     console.log('Pacientes.drop() foi concluído com sucesso.');
-//   })
-//   .catch(error => {
-//     // Ocorreu um erro em qualquer uma das operações
-//     console.error('Ocorreu um erro:', error);
-//   });
 
 export default ({navigation}: Props) => {
   const {nome} = useUserActive();
@@ -103,7 +52,7 @@ export default ({navigation}: Props) => {
             styles={[styles.text, styles.textWelcome]}
             text="Seja bem vindo!"
           />
-          <Texto styles={styles.textName} text={nome} />
+          <Texto text={nome} />
         </View>
 
         <Image
@@ -166,9 +115,6 @@ const styles = StyleSheet.create({
     color: colors.text,
     fontSize: 16,
     flexShrink: 1,
-  },
-  textName: {
-    textAlign: 'left',
   },
   image: {
     width: 100,

@@ -1,15 +1,21 @@
 import React, {useState} from 'react';
 import {StyleSheet, View} from 'react-native';
-import Botao from '../../components/Botao';
-import Divisor from '../../components/Divisor';
-import CampoDigitacao from '../../components/CampoDigitacao';
-import {colors} from '../../styles/styles';
+import Botao from '../components/Botao';
+import Divisor from '../components/Divisor';
+import CampoDigitacao from '../components/CampoDigitacao';
+import {colors} from '../styles/styles';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../types/TypeRoutesUser';
-import Texto from '../../components/Texto';
-import GoogleLogo from '../../assets/img/social/google.svg.png';
-import FacebookLogo from '../../assets/img/social/facebook.png';
+import {RootStackParamList} from '../types/TypeRoutesUser';
+import Texto from '../components/Texto';
+import GoogleLogo from '../assets/img/social/google.svg.png';
+import FacebookLogo from '../assets/img/social/facebook.png';
 import DropDownPicker from 'react-native-dropdown-picker';
+import useUserType from '../state/hooks/useUserType';
+import useUserTypeSet from '../state/hooks/useUserTypeSet';
+import Pacientes from '../service/sqlite/Pacientes';
+import Reactron from 'reactotron-react-native';
+import { Paciente } from '../types/TypePaciente';
+import useUserActiveSet from '../state/hooks/useUserActiveSet';
 
 type MainUserScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -27,6 +33,13 @@ export default ({navigation}: Props) => {
     {label: 'E-mail', value: 'email'},
   ]);
   const [value, setValue] = useState(items[0].value);
+  const userType = useUserType();
+  const setUserType = useUserTypeSet();
+
+  const setUserActive = useUserActiveSet();
+
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
 
   return (
     <View style={styles.container}>
@@ -60,18 +73,45 @@ export default ({navigation}: Props) => {
               styles={[styles.titulo, styles.tituloAlt]}
               text="Login por endereço de e-mail"
             />
-            <CampoDigitacao placeholder={'Endereço de E-mail'} />
-            <CampoDigitacao placeholder={'Senha: ******'} />
+            <CampoDigitacao
+              placeholder={'Endereço de E-mail'}
+              onChangeText={(text: React.SetStateAction<string>) =>
+                setEmail(text)
+              }
+            />
+            <CampoDigitacao
+              placeholder={'Senha: ******'}
+              onChangeText={(text: React.SetStateAction<string>) =>
+                setSenha(text)
+              }
+            />
           </>
         )}
       </View>
 
-      <Botao
-        title="Continuar"
-        onPress={() => {
-          navigation.navigate('MainUser');
-        }}
-      />
+      {userType && userType === 'paciente' ? (
+        <Botao
+          title="Continuar"
+          onPress={() => {
+            setUserType('paciente');
+            Pacientes.checkAccount(email, senha).then(result => {
+              if (result !== undefined) {
+                const obj: Paciente = result;
+                setUserActive(obj);
+                navigation.navigate('MainUser');
+              }
+            });
+          }}
+        />
+      ) : (
+        <Botao
+          title="Continuar"
+          onPress={() => {
+            navigation.navigate('MainDoctor');
+            setUserType('medico');
+          }}
+        />
+      )}
 
       <Divisor />
 

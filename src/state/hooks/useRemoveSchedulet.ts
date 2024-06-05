@@ -1,11 +1,12 @@
 import {useSetRecoilState} from 'recoil';
 import {userScheduledListState} from '../atom';
-import IScheduled from '../../interface/IScheduled';
+import {Consulta} from '../../types/TypeConsulta';
 
+// Atualiza uma consulta da lista de consultas
 const useRemoveScheduled = () => {
   const setScheduledList = useSetRecoilState(userScheduledListState);
 
-  return (scheduled: IScheduled) => {
+  return (scheduled: Consulta) => {
     setScheduledList(prevList => {
       const updatedList = prevList.map(item => {
         if (item.id === scheduled.id) {

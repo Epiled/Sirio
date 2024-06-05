@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from 'react-native';
-import styled, { css } from 'styled-components/native';
+import styled, {css} from 'styled-components/native';
 import {colors} from '../../styles/styles';
 
 interface IBotao {

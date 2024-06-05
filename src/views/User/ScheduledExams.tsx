@@ -1,31 +1,77 @@
-import React, {useState} from 'react';
-import {FlatList, StyleSheet, TouchableOpacity, View} from 'react-native';
-
-import Material from 'react-native-vector-icons/MaterialCommunityIcons';
-import {colors} from '../../styles/styles';
-import IScheduled from '../../interface/IScheduled';
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { colors } from '../../styles/styles';
 import Botao from '../../components/Botao';
 import useScheduledList from '../../state/hooks/useScheduledList';
 import useRemoveScheduled from '../../state/hooks/useRemoveSchedulet';
 import Texto from '../../components/Texto';
 import Card from '../../components/Card';
 import MenssagemAviso from '../../components/MenssagemAviso';
+import Consultas from '../../service/sqlite/Consultas';
+import useUserActive from '../../state/hooks/useUserActive';
+import Reactotron from 'reactotron-react-native';
+import { Consulta } from '../../types/TypeConsulta';
+import useScheduledListSet from '../../state/hooks/useScheduledListSet';
+import orderDate from '../../../util/orderDate';
+import useAddCurrent from '../../state/hooks/useAddCurrent';
+import DatePicker from '../../components/DatePicker';
+import dayjs from 'dayjs';
+import 'dayjs/locale/pt-br'; // Importe a localização para o português do Brasi
+import handleDate from '../../../util/handleDate';
+import useServiceCurrentSet from '../../state/hooks/useServiceCurrentSet';
+import useServiceCurrent from '../../state/hooks/useServiceCurrent';
+import randomId from '../../../util/randomId';
+dayjs.locale('pt-br'); // Defina o idioma padrão para o português do Brasil
 
 export default () => {
   const userScheduledList = useScheduledList();
+  const setScheduledList = useScheduledListSet();
+
+  const {id} = useUserActive();
+
   const cancelScheduled = useRemoveScheduled();
 
-  const [selected, setSelected] = useState<IScheduled | null>(null);
+  const [selected, setSelected] = useState<Consulta | null>(null);
   const [showOptions, setShowOptions] = useState(false);
 
-  const renderItem = ({item}: {item: IScheduled}) => {
-    if (item.status === 'a') {
+  useEffect(() => {
+    if (id) {
+      Consultas.findById(id)
+        .then(scheduledList => {
+          Reactotron.log(scheduledList);
+          return setScheduledList(orderDate(scheduledList, 'ASC'));
+        })
+        .catch(error => {
+          console.error('Erro ao buscar dados:', error);
+        });
+    }
+  }, [id]);
+
+  const checkList = () => {
+    if (userScheduledList.length > 0) {
+      return userScheduledList.some(
+        scheduling => scheduling.statusConsulta === 'a',
+      );
+    } else {
+      return false;
+    }
+  };
+
+  const setUserScheduledCurrent = useAddCurrent();
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // const setUserServiceCurrent = useServiceCurrentSet();
+
+  const renderItem = ({item}: {item: Consulta}) => {
+    if (item.statusConsulta === 'a') {
       return (
         <TouchableOpacity
           style={styles.card}
           onPress={() => {
             setShowOptions(true);
             setSelected(item);
+            setUserScheduledCurrent(item);
           }}>
           <Card item={item} />
         </TouchableOpacity>
@@ -37,15 +83,15 @@ export default () => {
 
   return (
     <View style={styles.container}>
-      {userScheduledList.length > 0 ? (
+      {checkList() ? (
         <FlatList
           data={userScheduledList}
           renderItem={renderItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => (item.id ? item.id.toString() : '')}
           ListHeaderComponent={
             <Texto
               styles={styles.titulo}
-              text="Aqui você encontrara a data e hora de suas futuras consultas domicilar"
+              text="Aqui você encontrara a data e hora de suas futuras consultas domiciliar"
             />
           }
         />
@@ -67,7 +113,7 @@ export default () => {
             style={styles.button}
             title="Editar consulta"
             onPress={() => {
-              console.warn(selected);
+              setShowDatePicker(true);
             }}
           />
           <Botao
@@ -77,9 +123,10 @@ export default () => {
               if (selected && selected.id) {
                 const modifyScheduled = {
                   ...selected,
-                  status: 'x' as 'a' | 'c' | 'x',
+                  statusConsulta: 'x' as 'a' | 'c' | 'x',
                 };
                 cancelScheduled(modifyScheduled);
+                Consultas.update(selected.id, modifyScheduled);
               }
               setSelected(null);
               setShowOptions(false);
@@ -87,6 +134,33 @@ export default () => {
           />
         </View>
       )}
+      {/* <Botao
+        title="Lista no Recoil"
+        onPress={() => {
+          console.log(userScheduledList);
+        }}
+      />
+      <Botao
+        title="Drop Consultas"
+        onPress={() => {
+          Consultas.drop();
+        }}
+      />
+      <Botao
+        title="Create Cosultas"
+        onPress={() => {
+          Consultas.createTable();
+        }}
+      /> */}
+      <DatePicker
+        showPicker={showDatePicker}
+        onClose={setShowDatePicker}
+        onUpdate
+        onPress={() => {
+          setSelected(null);
+          setShowOptions(false);
+        }}
+      />
     </View>
   );
 };
@@ -141,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.lighter,
     gap: 10,
     padding: 20,
-    paddingStart: 10,
+    paddingTop: 10,
   },
   button: {
     height: 'auto',

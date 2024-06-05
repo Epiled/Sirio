@@ -1,10 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Text, View} from 'react-native';
 
 export default () => {
   return (
     <View>
-      <Text>Login Doctor</Text>
+      <Text>Aqui</Text>
     </View>
   );
 };

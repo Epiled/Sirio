@@ -1,17 +1,23 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet, Text, TextInput, View} from 'react-native';
 import {colors} from '../../styles/styles';
 
 interface ICampoDigitacao {
   icon?: string;
   placeholder: string;
+  onChangeText?: (text: string) => void;
 }
 
-export default ({icon, placeholder}: ICampoDigitacao) => {
+export default ({icon, placeholder, onChangeText}: ICampoDigitacao) => {
   const [inputValue, setInputValue] = useState('');
 
-  const handleChangeText = (text: React.SetStateAction<string>) => {
+  useEffect(() => {
+    setInputValue(inputValue);
+  }, [inputValue]);
+
+  const handleChangeText = (text: string) => {
     setInputValue(text);
+    onChangeText && onChangeText(text);
   };
 
   return (

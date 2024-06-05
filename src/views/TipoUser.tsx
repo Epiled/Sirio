@@ -1,10 +1,14 @@
 import React from 'react';
-import {Image, StyleSheet, View} from 'react-native';
+import {Image, StyleSheet, Text, View} from 'react-native';
 import Botao from '../components/Botao';
 import {RootStackParamList} from '../types/TypeRoutes';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Texto from '../components/Texto';
 import {colors} from '../styles/styles';
+import Pacientes from '../service/sqlite/Pacientes';
+import Doctors from '../service/sqlite/Doctors';
+import Consultas from '../service/sqlite/Consultas';
+import useUserTypeSet from '../state/hooks/useUserTypeSet';
 
 type HomeScreenNavigationProp = NativeStackNavigationProp<
   RootStackParamList,
@@ -16,6 +20,12 @@ type Props = {
 };
 
 export default ({navigation}: Props) => {
+  Pacientes.createTable();
+  Doctors.createTable();
+  Consultas.createTable();
+
+  const setUserType = useUserTypeSet();
+
   return (
     <View style={styles.container}>
       <Image
@@ -30,19 +40,27 @@ export default ({navigation}: Props) => {
         <Botao
           title="Portal do Paciente"
           onPress={() => {
-            navigation.navigate('LoginUser');
+            navigation.navigate('Login', {userType: 'Paciente'});
+            setUserType('paciente');
           }}
         />
 
         <Botao
           title="Portal do Médico"
           onPress={() => {
-            navigation.navigate('LoginDoctor');
+            navigation.navigate('Login', {userType: 'Médico'});
+            setUserType('medico');
           }}
         />
       </View>
       <Texto styles={styles.textNC} text="Não Possui conta? ">
-        <Texto styles={styles.rotaCadastro} text="Cadastre-se" />
+        <Text
+          style={styles.rotaCadastro}
+          onPress={() => {
+            navigation.navigate('TipoCadastro');
+          }}>
+          Cadastre-se
+        </Text>
       </Texto>
     </View>
   );
@@ -81,8 +99,3 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
 });
-function setTodos(
-  storedTodoItems: import('../interface/IToDoItem').ToDoItem[],
-) {
-  throw new Error('Function not implemented.');
-}

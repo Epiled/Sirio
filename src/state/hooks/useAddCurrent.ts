@@ -1,10 +1,11 @@
 import {useSetRecoilState} from 'recoil';
 import {userScheduledCurrentState} from '../atom';
-import IScheduled from '../../interface/IScheduled';
+import {Consulta} from '../../types/TypeConsulta';
 
+// Adiciona uma consulta a consulta selecionada
 const useAddCurrent = () => {
   const setScheduledCurrent = useSetRecoilState(userScheduledCurrentState);
-  return (newCurrent: IScheduled) => {
+  return (newCurrent: Consulta | null) => {
     return setScheduledCurrent(newCurrent);
   };
 };

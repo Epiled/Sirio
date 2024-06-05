@@ -17,4 +17,10 @@ export const opcoes = [
     image: 'calendar-month',
     route: 'ConsultasAgendadas',
   },
+  {
+    id: '4',
+    texto: 'Sair',
+    image: 'exit-to-app',
+    route: 'TipoUser',
+  },
 ];

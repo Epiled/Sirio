@@ -1,12 +1,37 @@
 import {atom} from 'recoil';
-import IScheduled from '../interface/IScheduled';
+import {Paciente} from '../types/TypePaciente';
+import {Doctor} from '../types/TypeDoctor';
+import {Consulta} from '../types/TypeConsulta';
+import IService from '../interface/IService';
 
-export const userScheduledListState = atom<IScheduled[]>({
+export const userScheduledListState = atom<Consulta[]>({
   key: 'userScheduledList',
   default: [],
 });
 
-export const userScheduledCurrentState = atom<IScheduled | null>({
+export const userScheduledCurrentState = atom<Consulta | null>({
   key: 'userScheduledCurrent',
   default: null,
+});
+
+export const useServiceCurrentState = atom<IService | null>({
+  key: 'useServiceCurrent',
+  default: null,
+});
+
+export const userTypeState = atom<string | null>({
+  key: 'userType',
+  default: null,
+});
+
+export const userActiveState = atom<Paciente | Doctor>({
+  key: 'userActive',
+  default: {
+    id: 0,
+    nome: '',
+    telefone: '',
+    email: '',
+    senha: '',
+    especializacao: 0, // Especialização é uma propriedade opcional
+  },
 });
