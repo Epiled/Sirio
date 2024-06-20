@@ -3,6 +3,7 @@ import {Paciente} from '../types/TypePaciente';
 import {Doctor} from '../types/TypeDoctor';
 import {Consulta} from '../types/TypeConsulta';
 import IService from '../interface/IService';
+import {services} from '../db/services';
 
 export const userScheduledListState = atom<Consulta[]>({
   key: 'userScheduledList',
@@ -34,4 +35,14 @@ export const userActiveState = atom<Paciente | Doctor>({
     senha: '',
     especializacao: 0, // Especialização é uma propriedade opcional
   },
+});
+
+export const servicesState = atom({
+  key: 'services',
+  default: services,
+});
+
+export const filterServiceCurrentState = atom<number>({
+  key: 'filterServiceCurrent',
+  default: 0,
 });

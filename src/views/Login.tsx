@@ -14,7 +14,7 @@ import useUserType from '../state/hooks/useUserType';
 import useUserTypeSet from '../state/hooks/useUserTypeSet';
 import Pacientes from '../service/sqlite/Pacientes';
 import Reactron from 'reactotron-react-native';
-import { Paciente } from '../types/TypePaciente';
+import {Paciente} from '../types/TypePaciente';
 import useUserActiveSet from '../state/hooks/useUserActiveSet';
 
 type MainUserScreenNavigationProp = NativeStackNavigationProp<

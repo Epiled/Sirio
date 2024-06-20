@@ -5,21 +5,31 @@ import {defaultCounts} from '../../db/defaultCounts';
 import Reactotron from 'reactotron-react-native';
 
 const createTable = async () => {
+  let db: SQLiteDatabase | undefined;
   try {
     // Abrir a conexão com o banco de dados
-    const db: SQLiteDatabase | undefined = await openDatabaseConnection();
+    db = await openDatabaseConnection();
+    console.log('Conexão com o banco de dados aberta:', db);
 
+    // Verificar se a conexão com o banco de dados foi bem sucedida
     if (db) {
       // Verificar se a tabela pacientes já existe
       const checkTableQuery = `
         SELECT name FROM sqlite_master WHERE type='table' AND name='pacientes';
       `;
+      console.log('Query de verificação de tabela:', checkTableQuery);
+
+      // Executar a consulta SQL para verificar a existência da tabela
       const [results] = await db.executeSql(checkTableQuery);
+      console.log('Resultado da consulta:', results);
+
       const tableExists = results.rows.length > 0;
+      console.log('Tabela pacientes existe?', tableExists);
 
       if (!tableExists) {
+        console.log('Tentando criar tabela PACIENTES...');
         // SQL para criar a tabela se ela não existir
-        const query = `
+        const createTableQuery = `
           CREATE TABLE IF NOT EXISTS pacientes (
             id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             nome TEXT,
@@ -29,26 +39,24 @@ const createTable = async () => {
           );
         `;
 
-        // Executando a consulta SQL
-        await db.executeSql(query);
+        // Executar a consulta SQL para criar a tabela
+        await db.executeSql(createTableQuery);
         console.log('Tabela PACIENTES criada com sucesso!');
-
-        // Popula com dados de base
-        await insertBase(defaultCounts);
-        console.log('PACIENTES base inseridos com sucesso!');
       } else {
-        console.log(
-          'Tabela PACIENTES já existe. Não é necessário criar ou popular com dados.',
-        );
+        console.log('Tabela PACIENTES já existe. Não é necessário criar.');
       }
     } else {
-      console.error(
-        'Pacientes - Não foi possível abrir a conexão com o banco de dados!',
-      );
+      console.error('Não foi possível abrir a conexão com o banco de dados!');
     }
   } catch (error) {
-    console.error('Erro ao criar tabela PACIENTES: ', error);
+    console.error('Erro ao criar tabela PACIENTES:', error);
     throw error; // Lança o erro para que seja tratado pela função chamadora
+  } finally {
+    // Fechar o banco de dados se estiver aberto
+    if (db) {
+      await db.close();
+      console.log('Conexão com o banco de dados fechada.');
+    }
   }
 };
 
@@ -284,4 +292,57 @@ const insertBase = async (obj: Paciente[]) => {
   }
 };
 
-export default {createTable, all, insert, update, remove, checkAccount, drop};
+const findById = async (id: number) => {
+  try {
+    // Abrir a conexão com o banco de dados
+    const db: SQLiteDatabase | undefined = await openDatabaseConnection();
+
+    if (db) {
+      // SQL para selecionar todos os CONSULTAS
+      const query = `
+        SELECT *
+        FROM pacientes WHERE id=?;
+      `;
+
+      // Executando a consulta SQL e obter os resultados
+      const [results] = await db.executeSql(query, [id]);
+
+      // Converter os resultados para um array de objetos
+      let rows = {};
+      for (let i = 0; i < results.rows.length; i++) {
+        rows = results.rows.item(i);
+      }
+
+      console.log('Todos os CONSULTAS buscados com sucesso:');
+
+      // Verifica no log os CONSULTAS
+      // rows.forEach(obj => {
+      //   console.log(obj);
+      // });
+
+      Reactotron.log(rows);
+
+      // Retornar os dados encontrados
+      return rows;
+    } else {
+      console.error(
+        'Consultas: Selecionar Todos - Não foi possível abrir a conexão com o banco de dados!',
+      );
+      return [];
+    }
+  } catch (error) {
+    console.error('Erro ao buscar todos os CONSULTAS:', error);
+    return [];
+  }
+};
+
+export default {
+  createTable,
+  all,
+  insert,
+  update,
+  remove,
+  checkAccount,
+  drop,
+  findById,
+};

@@ -294,7 +294,7 @@ const findById = async (idPaciente: number): Promise<Consulta[]> => {
   }
 };
 
-const findPacintes = async (idDoctor: number): Promise<Consulta[]> => {
+const findPacientes = async (idDoctor: number): Promise<Consulta[]> => {
   try {
     // Abrir a conexão com o banco de dados
     const db: SQLiteDatabase | undefined = await openDatabaseConnection();
@@ -381,7 +381,7 @@ export default {
   update,
   remove,
   drop,
-  findPacintes,
+  findPacientes,
   findById,
   todayList,
 };
